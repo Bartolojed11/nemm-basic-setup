@@ -32,49 +32,87 @@ exports.createTour = async (req, res) => {
 
     return response(res, 200, 'Tour created successfully!', 'success', tour)
   } catch (error) {    
-    return response(res, 500, error, 'Error creating tour!')
+    return response(res, 500, error.message, 'Error creating tour!')
   }
 };
 
-exports.getAllTours = (req, res) => {
-
+exports.getAllTours = async (req, res) => {
+  try {
+    const tours = await Tour.find()
+    return response(res, 200, {}, 'success', tours)
+  } catch(error) {
+    return response(res, 500, error, 'Error getting tours!')
+  }
 };
 
-exports.getTourById = (req, res) => {
+exports.getTourById = async (req, res) => {
   const { id } = req.params;
-
+  try {
+    const tour = await Tour.findById(id)
+    return response(res, 200, {}, 'success', tour)
+  } catch(error) {
+    return response(res, 500, error, 'Error getting tours!')
+  }
 };
 
 exports.getTourInACity = (req, res) => {
   const { id, cityId } = req.params;
 };
 
-exports.deleteTour = (req, res) => {
+exports.deleteTour = async (req, res) => {
   const { id } = req.params;
-};
 
-exports.updateTour = (req, res) => {
-  const { id } = req.params;
-};
-
-exports.checkId = (req, res, next, val) => {
-  if (isNaN(val)) {
-   return res.status(500).json({
-       'message' : 'Invalid ID. ID must be an integer'
-   })
+  try {
+    const tour = await Tour.findByIdAndDelete(id);
+    return response(res, 204, 'Tour deleted successfully!', 'success')
+  } catch (error) {
+    return response(res, 500, error, 'Failed to delete tour!')
   }
-   next()
-}
+};
 
-const response = (res, statusCode = 200, message, status = 'success', data = {}) => {
+exports.updateTour = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const tour = await Tour.findByIdAndUpdate(id, req.body, {
+      new: true
+    });
+
+    // new : true means that it will return the updated tour
+
+    return response(res, 200, 'Tour updated successfully!', 'success', tour)
+  } catch (error) {
+    return response(res, 500, error, 'Error updating tours')
+  }
+};
+
+// exports.checkId = (req, res, next, val) => {
+//   if (isNaN(val)) {
+//    return res.status(500).json({
+//        'message' : 'Invalid ID. ID must be an integer'
+//    })
+//   }
+//    next()
+// }
+
+const response = (res, statusCode = 200, message = {}, status = 'success', data = {}) => {
   let responseBody = {
-    status: status,
-    message: message
+    status: status
   }
 
-  if (statusCode === 200) {
-    let tourData = {
-      'tour' : data
+  if (message.length > 0) {
+    responseBody.message = message
+  }
+
+  /**
+   * https://www.samanthaming.com/tidbits/94-how-to-check-if-object-is-empty/
+   * Object.keys(data).length !== 0 && data.constructor !== Object
+   * Will check if object is empty
+   */
+
+  if (statusCode === 200 && (Object.keys(data).length !== 0 && data.constructor !== Object)) {
+    const tourData = {
+     'tours' : data
     }
     responseBody.data = tourData
   }

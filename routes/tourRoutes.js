@@ -9,7 +9,7 @@ const tourController = require('./../controllers/tourController')
  * the standard of express
  */
 
-router.param('id', tourController.checkId)
+// router.param('id', tourController.checkId)
 
 // because of router, this will be equivalent to /api/v1/tours
 router
