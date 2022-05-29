@@ -30,6 +30,8 @@ const TourSchema = mongoose.Schema({
   ratingsAverage: {
     type: Number,
     default: 4.5,
+    // select: false
+    // select: false means this should not be included on result set
   },
   ratingsQuantity: {
     type: Number,

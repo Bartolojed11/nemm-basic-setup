@@ -14,7 +14,7 @@ const tourController = require('./../controllers/tourController')
 // because of router, this will be equivalent to /api/v1/tours
 router
     .route('/')
-    .get(tourController.getAllTours)
+    .get(tourController.getTours)
     .post(
         // tourController.checkBody,
         // tourController.checkPrice,
