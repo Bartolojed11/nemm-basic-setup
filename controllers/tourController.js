@@ -13,6 +13,12 @@ const Tour = require('./../models/tourModel');
 //   next()
 // }
 
+exports.topCheapestTours = (req, res, next) => {
+  req.query.limit = process.env.TOP_CHEAPEST_LIMIT
+  req.query.sort = '-price'
+  next()
+}
+
 exports.checkPrice = (req, res, next) => {
   const { price } = req.body;
 
@@ -32,24 +38,37 @@ exports.createTour = async (req, res) => {
 
     return response(res, 200, 'Tour created successfully!', 'success', tour);
   } catch (error) {
-    return response(res, 500, error.message, 'Error creating tour!');
+    return response(res, 500, error.message, 'Error');
   }
 };
 
 exports.getTours = async (req, res) => {
+  console.log(req.query)
   try {
     let query = Tour
+    let hasFilter = false
 
     if (req.query.name) {
+      hasFilter = true
       query = query.where('name', req.query.name)
     }
 
     if (req.query.difficulty) {
+      hasFilter = true
       query = query.where('difficulty', req.query.difficulty)
     }
 
     if (req.query.duration) {
+      hasFilter = true
       query = query.where('duration').gte(req.query.duration)
+    }
+
+    /**
+     * If no where clause or find({}), it will throw an error for the code below the query.find({}).
+     * With this, it will prevent it and run the query as intended.
+     */
+    if (! hasFilter) {
+      query = query.find({})
     }
     
     /**
@@ -60,7 +79,6 @@ exports.getTours = async (req, res) => {
      */
     if (req.query.fields) {
       const fields = req.query.fields.split(',').join(' ')
-      console.log(fields)
       query = query.select(fields)
     } else {
       query = query.select('-__v')
@@ -80,11 +98,30 @@ exports.getTours = async (req, res) => {
       query = query.sort(sortBy)
     }
 
+    // Pagination
+    const page = parseInt(req.query.page) || 1
+    const limit = parseInt(req.query.limit) || process.env.PAGINATION_LIMIT
+
+    // Index starts at 0, so we need to -1
+    const skip = (page - 1) * limit
+    query = query.skip(skip).limit(limit)
+
+    if (req.query.page) {
+      let tourPagesCount = await Tour.countDocuments()
+      
+      tourPagesCount = tourPagesCount / process.env.PAGINATION_LIMIT
+      tourPagesCount = Math.ceil(tourPagesCount)
+      if (page > tourPagesCount) {
+        throw new Error("This page doesn't exist")
+      }
+    }
+
     const tours = await query;
 
     return response(res, 200, {}, 'success', tours);
   } catch (error) {
-    return response(res, 500, error.message, 'Error getting tours!');
+    console.log(error.message)
+    return response(res, 500, error, 'Error');
   }
 };
 
@@ -92,9 +129,9 @@ exports.getTourById = async (req, res) => {
   const { id } = req.params;
   try {
     const tour = await Tour.findById(id);
-    return response(res, 200, {}, 'success', tour);
+    return response(res, 200, {}, 'Success', tour);
   } catch (error) {
-    return response(res, 500, error, 'Error getting tours!');
+    return response(res, 500, error, 'Error');
   }
 };
 
@@ -109,7 +146,7 @@ exports.deleteTour = async (req, res) => {
     const tour = await Tour.findByIdAndDelete(id);
     return response(res, 204, 'Tour deleted successfully!', 'success');
   } catch (error) {
-    return response(res, 500, error, 'Failed to delete tour!');
+    return response(res, 500, error, 'Error');
   }
 };
 
@@ -125,7 +162,7 @@ exports.updateTour = async (req, res) => {
 
     return response(res, 200, 'Tour updated successfully!', 'success', tour);
   } catch (error) {
-    return response(res, 500, error, 'Error updating tours');
+    return response(res, 500, error, 'Error');
   }
 };
 
