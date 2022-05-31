@@ -53,7 +53,17 @@ const TourSchema = mongoose.Schema({
       required: true,
       type: [Date],
   }
+}, {
+  // Means it should show the virtuals when having a json and object result
+  toJSON: { virtuals: true},
+  toObject: { virtuals: true},
 });
+
+// virtual is a bit like the view on MySql Database
+// Virtual can't be queried, (eg) Tour.find().where('durationWeeks', 1)
+TourSchema.virtual('durationWeeks').get(function() {
+  return this.duration / 7;
+})
 
 const Tour = mongoose.model('Tour', TourSchema);
 
