@@ -6,6 +6,22 @@ const TourSchema = mongoose.Schema({
     type: Number,
     required: [true, 'A Tour must have a price'],
   },
+  priceDiscount: {
+    type: Number,
+    default: 0,
+    validate: {
+      validator: function (priceDisc) {
+        /**
+         * return True : Passed
+         * return False : Failed
+         * ({VALUE}) : This is internal to mongoose, it is the inputted value
+         * "this" will only be availble on create, and not on update
+         */
+        return priceDisc < this.price
+      },
+      message: 'Price Discount ({VALUE}) should be less than the regular price',
+    }
+  },
   name: {
     type: String,
     required: [true, 'A Tour must have a name'],
