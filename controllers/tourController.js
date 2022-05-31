@@ -90,8 +90,10 @@ exports.updateTour = async (req, res) => {
 
   try {
     // new : true means that it will return the updated tour
+    // runValidators : Means it should apply the validators on the model
     const tour = await Tour.findByIdAndUpdate(id, req.body, {
       new: true,
+      runValidators: true
     });
 
     return new Response(res, 200, 'Tour updated successfully!', 'success', tour);
