@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const slugify = require('slugify');
 
 const TourSchema = mongoose.Schema({
   price: {
@@ -55,6 +56,10 @@ const TourSchema = mongoose.Schema({
   startDates: {
     required: true,
     type: [Date],
+  },
+  secretTour: {
+    type: Boolean,
+    default: false
   }
 }, {
   // Means it should show the virtuals when having a json and object result
@@ -83,6 +88,20 @@ TourSchema.post('save', function (doc, next) {
   next()
 })
 // Document Middleware end
+
+/**
+ * Query Middleware : Runs before/after a query hook is executed
+ * /^find/ : Regexp means it will match all query that start with find
+ * (eg) : findById, findOn
+ */
+TourSchema.pre(/^find/, function (next) {
+  // This here now returns the query object, so we can append a new query
+  this.find().where('secretTour').ne(true)
+  next()
+})
+
+
+
 
 const Tour = mongoose.model('Tour', TourSchema);
 
