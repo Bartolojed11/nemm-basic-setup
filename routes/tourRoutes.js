@@ -15,7 +15,14 @@ router
 
 // router.param('id', tourController.checkId)
 
-// because of router, this will be equivalent to /api/v1/tours
+/**
+ * .post(tourController.checkBody, tourController.createTour) => This is called method middleware chaining
+ * first param of post is the middleware checker
+ * the last params is the route
+ * 
+ * ------------------------------------------------------------
+ * This router will be equivalent to /api/v1/tours or route specified on app.use()
+ */
 router.route('/').get(tourController.getTours).post(
   // tourController.checkBody,
   // tourController.checkPrice,
@@ -23,10 +30,13 @@ router.route('/').get(tourController.getTours).post(
 )
 
 /**
- * .post(tourController.checkBody, tourController.createTour) => This is called method middleware chaining
- * first param of post is the middleware checker
- * the last params is the route
+ * For some reason, this method will only work before /:id
+ * https://stackoverflow.com/questions/61229252/cast-to-objectid-failed-for-value-at-path-id-for-model-modelname
+ * TODO: Find the additional reason for this
  */
+router.route('/tour-stats').get(tourController.getTourStats)
+router.route('/monthly-plan/:year').get(tourController.getMonthlyPlan)
+
 
 router
   .route('/:id')

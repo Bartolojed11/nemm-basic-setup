@@ -33,13 +33,14 @@ exports.checkPrice = (req, res, next) => {
 };
 
 exports.createTour = async (req, res) => {
+  let Response = require('./../helpers/Response')
   try {
     // No need to manually assign key value pairs, columns not declared on schema will not be saved.
     const tour = await Tour.create(req.body);
 
-    return response(res, 200, 'Tour created successfully!', 'success', tour);
+    return new Response(res, 200, 'Tour created successfully!', 'success', tour);
   } catch (error) {
-    return response(res, 500, error.message, 'Error');
+    return new Response(res, 500, error.message, 'Error');
   }
 };
 
@@ -48,9 +49,8 @@ exports.getTours = async (req, res) => {
   try {
     let model = new Filtering(Tour, req).filter().selectedFields().sort()
     let tours = await model.query
-    console.log("🚀 ~ file: tourController.js ~ line 50 ~ exports.getTours= ~ tours", tours)
 
-    if (tours.length === 0) throw new Error('Page not found') 
+    if (tours.length === 0) throw new Error('Page not found')
     return new Response(res, 200, {}, 'success', tours)
   } catch (error) {
     return new Response(res, 200, error, 'error')
@@ -58,12 +58,13 @@ exports.getTours = async (req, res) => {
 };
 
 exports.getTourById = async (req, res) => {
+  let Response = require('./../helpers/Response')
   const { id } = req.params;
   try {
     const tour = await Tour.findById(id);
-    return response(res, 200, {}, 'Success', tour);
+    return new Response(res, 200, {}, 'Success', tour);
   } catch (error) {
-    return response(res, 500, error, 'Error');
+    return new Response(res, 500, error, 'Error');
   }
 };
 
@@ -72,29 +73,30 @@ exports.getTourInACity = (req, res) => {
 };
 
 exports.deleteTour = async (req, res) => {
+  let Response = require('./../helpers/Response')
   const { id } = req.params;
 
   try {
     const tour = await Tour.findByIdAndDelete(id);
-    return response(res, 204, 'Tour deleted successfully!', 'success');
+    return new Response(res, 204, 'Tour deleted successfully!', 'success');
   } catch (error) {
-    return response(res, 500, error, 'Error');
+    return new Response(res, 500, error, 'Error');
   }
 };
 
 exports.updateTour = async (req, res) => {
+  let Response = require('./../helpers/Response')
   const { id } = req.params;
 
   try {
+    // new : true means that it will return the updated tour
     const tour = await Tour.findByIdAndUpdate(id, req.body, {
       new: true,
     });
 
-    // new : true means that it will return the updated tour
-
-    return response(res, 200, 'Tour updated successfully!', 'success', tour);
+    return new Response(res, 200, 'Tour updated successfully!', 'success', tour);
   } catch (error) {
-    return response(res, 500, error, 'Error');
+    return new Response(res, 500, error, 'Error');
   }
 };
 
@@ -107,38 +109,98 @@ exports.updateTour = async (req, res) => {
 //    next()
 // }
 
-const response = (
-  res,
-  statusCode = 200,
-  message = {},
-  status = 'success',
-  data = {}
-) => {
-  let responseBody = {
-    status: status,
-  };
-
-  if (message.length > 0) {
-    responseBody.message = message;
+exports.getTourStats = async function (req, res) {
+  let Response = require('./../helpers/Response')
+  try {
+    /**
+     * aggregate() can be found on mongo db and it supports queries which 
+     * are not found on mongoose documentation.
+     * (eg) Group, average, etc
+     */
+    const stats = await Tour.aggregate([
+      {
+        $match: { ratingsAverage: { $gte: 4.5 } }
+      },
+      {
+        $group: {
+          //_id: null, // we want verything in one group, so null is the value for achieving it
+          _id: '$difficulty', // We want to group it by difficulty
+          numTours: { $sum: 1 }, // This means add 1 to each documents
+          numRatings: { $sum: '$ratingsQuantity' },
+          avgRating: { $avg: '$ratingsAverage' },
+          avgPrice: { $avg: '$price' },
+          minPrice: { $min: '$price' },
+          maxPrice: { $max: '$price' }
+        }
+      },
+      {
+        $sort: { avgPrice: 1 } // 1 means ascending, -1 means descending.
+      },
+      // {
+      //   $match: { _id: { $ne: 'easy' } } // This will exclude the easy difficulty
+      // }
+    ])
+    return new Response(res, 200, {}, 'success', stats);
+  } catch (error) {
+    return new Response(res, 500, error, 'Error');
   }
+}
 
-  /**
-   * https://www.samanthaming.com/tidbits/94-how-to-check-if-object-is-empty/
-   * Object.keys(data).length !== 0 && data.constructor !== Object
-   * Will check if object is empty
-   */
+exports.getMonthlyPlan = async (req, res) => {
+  let Response = require('./../helpers/Response')
 
-  if (
-    statusCode === 200 &&
-    Object.keys(data).length !== 0 &&
-    data.constructor !== Object
-  ) {
-    const tourData = {
-      tours: data,
-    };
-    responseBody.results = data.length;
-    responseBody.data = tourData;
+  try {
+    const year = req.params.year
+    /**
+     * $unwind: '$startDates' - This will create separate document per value on startDate
+     * (eg)
+     * From : [{id: 1, startDates : ['Jan 01 2021', 'Feb 01 2021']}]
+     * To : [{id: 1, startDates : 'Jan 01 2021'} , {id: 1:, 'Feb 01 2021']}]
+     */
+    let monthlyPlan = await Tour.aggregate([
+      {
+        $unwind: '$startDates'
+      },
+      {
+        $match: {
+          startDates: {
+            $gte: new Date(`${year}-01-01`),
+            $lte: new Date(`${year}-12-31`)
+          }
+        }
+      },
+      {
+        $group: {
+          // $month aggragation will extract month from date
+          //  see monggo db documentation
+          _id: { $month: '$startDates' },
+          // $sum: 1 means add document per group, same as count(id) GROUP BY id of MySql
+          //  see monggo db documentation
+          numTourStats: { $sum: 1 },
+          // $push aggragation will push data to tours, use to have array values
+          //  see monggo db documentation
+          tours: { $push: '$name' },
+        }
+      },
+      {
+        $addFields: { Month: '$_id' }
+      },
+      {
+        // 0 means to not show the _id, 1 means the oposite
+        $project: { _id : 0}
+      },
+      {
+        $sort: {
+          numTourStats : -1
+        }
+      },
+      {
+        $limit : 6
+      }
+    ])
+
+    return new Response(res, 200, {}, 'success', monthlyPlan);
+  } catch (error) {
+    return new Response(res, 500, error, 'Error');
   }
-
-  return res.status(statusCode).send(responseBody);
-};
+}
