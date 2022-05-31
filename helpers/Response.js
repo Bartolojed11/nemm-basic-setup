@@ -20,29 +20,28 @@ class Response {
       responseBody.message = message.message
     }
 
-    /**
+     /**
      * https://www.samanthaming.com/tidbits/94-how-to-check-if-object-is-empty/
      * Object.keys(data).length !== 0 && data.constructor !== Object
      * Will check if object is empty
      */
-
-    if (
-      statusCode === 200 &&
-      Object.keys(data).length !== 0 &&
-      data.constructor !== Object
-    ) {
+    
+    if (statusCode === 200) {
       const tourData = {
         tours: data,
       }
 
-      responseBody.results = data.length
-      responseBody.data = tourData
+      if (data !== null && data !== undefined) {
+        if (Object.keys(data).length !== 0 && data.constructor !== Object) {
+          if (data.length !== undefined) responseBody.results = data.length
+          responseBody.data = tourData
+        }
+      } else {
+        responseBody.results = 0
+        responseBody.data = tourData
+      }
     }
 
-    console.log(
-      '🚀 ~ file: Response.js ~ line 46 ~ Response ~ responseBody',
-      responseBody
-    )
     return res.status(statusCode).json(responseBody)
   }
 }

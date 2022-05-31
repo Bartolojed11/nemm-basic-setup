@@ -40,7 +40,7 @@ exports.createTour = async (req, res) => {
 
     return new Response(res, 200, 'Tour created successfully!', 'success', tour);
   } catch (error) {
-    return new Response(res, 500, error.message, 'Error');
+    return new Response(res, 500, error, 'Error');
   }
 };
 

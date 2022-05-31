@@ -8,17 +8,14 @@ class Filtering {
   filter() {
     let req = this.req
     if (req.query.name) {
-      hasFilter = true
       this.model = this.model.where('name', req.query.name)
     }
 
     if (req.query.difficulty) {
-      hasFilter = true
       this.model = this.model.where('difficulty', req.query.difficulty)
     }
 
     if (req.query.duration) {
-      hasFilter = true
       this.model = this.model.where('duration').gte(req.query.duration)
     }
 
