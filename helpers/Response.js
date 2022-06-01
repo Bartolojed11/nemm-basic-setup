@@ -16,16 +16,21 @@ class Response {
       status: status,
     }
 
-    if (message.length > 0 || message.message !== undefined) {
-      responseBody.message = message.message
+    if (message.length > 0) {
+      responseBody.message = message
+      if (message.message !== undefined) {
+        responseBody.message = message.message
+      }
+    } else if (Object.entries(message).length > 0) {
+      responseBody.message = message
     }
 
-     /**
-     * https://www.samanthaming.com/tidbits/94-how-to-check-if-object-is-empty/
-     * Object.keys(data).length !== 0 && data.constructor !== Object
-     * Will check if object is empty
-     */
-    
+    /**
+    * https://www.samanthaming.com/tidbits/94-how-to-check-if-object-is-empty/
+    * Object.keys(data).length !== 0 && data.constructor !== Object
+    * Will check if object is empty
+    */
+
     if (statusCode === 200) {
       const tourData = {
         tours: data,
