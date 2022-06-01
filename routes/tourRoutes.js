@@ -1,7 +1,7 @@
 const express = require('express')
 // router is called mounting the router
 const router = express.Router()
-const tourController = require('./../controllers/tourController')
+const tourController = require('../controllers/TourController')
 
 // route aliasing
 router

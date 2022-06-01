@@ -1,7 +1,8 @@
 const express = require('express')
 const res = require('express/lib/response')
 const morgan = require('morgan')
-let Response = require('./helpers/Response')
+const AppError = require('./helpers/AppError')
+const ErrorHandler = require('./handlers/ErrorHandler')
 
 const app = express()
 
@@ -51,8 +52,9 @@ app.use('/api/v1/tours', tourRouter)
  * * means all http verbs
  */
 app.all('*', (req, res, next) => {    
-    return new Response(res, 404, `Can't find route ${req.url} on the server`, 'Error');
-    next();
+    next(new AppError(`Can't find route ${req.url} on the server`, 404));
 })
+
+app.use(ErrorHandler)
 
 module.exports = app

@@ -1,5 +1,5 @@
-const Tour = require('./../models/tourModel');
-const Filtering = require('./../helpers/Filtering')
+const Tour = require('../models/tourModel');
+const Filtering = require('../helpers/Filtering')
 
 // validator middlewares
 
@@ -33,7 +33,7 @@ exports.checkPrice = (req, res, next) => {
 };
 
 exports.createTour = async (req, res) => {
-  let Response = require('./../helpers/Response')
+  let Response = require('../helpers/Response')
   try {
     // No need to manually assign key value pairs, columns not declared on schema will not be saved.
     const tour = await Tour.create(req.body);
@@ -45,7 +45,7 @@ exports.createTour = async (req, res) => {
 };
 
 exports.getTours = async (req, res) => {
-  let Response = require('./../helpers/Response')
+  let Response = require('../helpers/Response')
   try {
     let model = new Filtering(Tour, req).filter().selectedFields().sort()
     let tours = await model.query
@@ -58,7 +58,7 @@ exports.getTours = async (req, res) => {
 };
 
 exports.getTourById = async (req, res) => {
-  let Response = require('./../helpers/Response')
+  let Response = require('../helpers/Response')
   const { id } = req.params;
   try {
     const tour = await Tour.findById(id);
@@ -73,7 +73,7 @@ exports.getTourInACity = (req, res) => {
 };
 
 exports.deleteTour = async (req, res) => {
-  let Response = require('./../helpers/Response')
+  let Response = require('../helpers/Response')
   const { id } = req.params;
 
   try {
@@ -85,7 +85,7 @@ exports.deleteTour = async (req, res) => {
 };
 
 exports.updateTour = async (req, res) => {
-  let Response = require('./../helpers/Response')
+  let Response = require('../helpers/Response')
   const { id } = req.params;
 
   try {
@@ -112,7 +112,7 @@ exports.updateTour = async (req, res) => {
 // }
 
 exports.getTourStats = async function (req, res) {
-  let Response = require('./../helpers/Response')
+  let Response = require('../helpers/Response')
   try {
     /**
      * aggregate() can be found on mongo db and it supports queries which 
@@ -149,7 +149,7 @@ exports.getTourStats = async function (req, res) {
 }
 
 exports.getMonthlyPlan = async (req, res) => {
-  let Response = require('./../helpers/Response')
+  let Response = require('../helpers/Response')
 
   try {
     const year = req.params.year
