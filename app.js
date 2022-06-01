@@ -1,6 +1,7 @@
 const express = require('express')
 const res = require('express/lib/response')
 const morgan = require('morgan')
+let Response = require('./helpers/Response')
 
 const app = express()
 
@@ -43,5 +44,15 @@ app.get('/', (req, res) => {
  */
 const tourRouter = require('./routes/tourRoutes')
 app.use('/api/v1/tours', tourRouter)
+
+/**
+ * Specify unhandle routes
+ * .all() means all http methods
+ * * means all http verbs
+ */
+app.all('*', (req, res, next) => {    
+    return new Response(res, 404, `Can't find route ${req.url} on the server`, 'Error');
+    next();
+})
 
 module.exports = app
