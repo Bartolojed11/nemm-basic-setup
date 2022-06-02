@@ -1,6 +1,7 @@
 const Tour = require('./../models/tourModel')
 const Filtering = require('./../helpers/Filtering')
-const catchAsync = require('./../helpers/catchAsync')
+const catchAsync = require('../handlers/CatchAsync')
+const AppError = require('../handlers/AppError')
 
 // validator middlewares
 
@@ -54,6 +55,9 @@ exports.getTourById = catchAsync(async (req, res, next) => {
   let Response = require('../helpers/Response')
   const { id } = req.params
   const tour = await Tour.findById(id)
+  if (! tour) {
+    return next(new AppError('No tour found!', 404))
+  } 
   return new Response(res, 200, {}, 'Success', tour)
 })
 
@@ -65,7 +69,10 @@ exports.deleteTour = catchAsync(async (req, res, next) => {
   let Response = require('../helpers/Response')
   const { id } = req.params
 
-  await Tour.findByIdAndDelete(id)
+  const tour = await Tour.findByIdAndDelete(id)
+  if (! tour) {
+    return next(new AppError('No tour found!', 404))
+  }
   return new Response(res, 204, 'Tour deleted successfully!', 'success')
 })
 
@@ -79,6 +86,10 @@ exports.updateTour = catchAsync(async (req, res, next) => {
     new: true,
     runValidators: true
   })
+
+  if (! tour) {
+    return next(new AppError('No tour found!', 404))
+  }
 
   return new Response(res, 200, 'Tour updated successfully!', 'success', tour)
 })

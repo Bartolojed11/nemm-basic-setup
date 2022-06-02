@@ -1,7 +1,7 @@
 const express = require('express')
 const res = require('express/lib/response')
 const morgan = require('morgan')
-const AppError = require('./helpers/AppError')
+const AppError = require('./handlers/AppError')
 const ErrorHandler = require('./handlers/ErrorHandler')
 
 const app = express()
