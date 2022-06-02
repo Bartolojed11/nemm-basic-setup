@@ -47,7 +47,6 @@ exports.getTours = catchAsync(async (req, res, next) => {
   let model = new Filtering(Tour, req).filter().selectedFields().sort()
   let tours = await model.query
 
-  if (tours.length === 0) throw new Error('Page not found')
   return new Response(res, 200, {}, 'success', tours)
 })
 
