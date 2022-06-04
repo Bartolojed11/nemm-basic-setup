@@ -1,7 +1,11 @@
 const express = require('express')
+
+const tourController = require('../controllers/TourController')
+const authController = require('../controllers/AuthController')
+
 // router is called mounting the router
 const router = express.Router()
-const tourController = require('../controllers/TourController')
+
 
 // route aliasing
 router
@@ -23,11 +27,14 @@ router
  * ------------------------------------------------------------
  * This router will be equivalent to /api/v1/tours or route specified on app.use()
  */
-router.route('/').get(tourController.getTours).post(
-  // tourController.checkBody,
-  // tourController.checkPrice,
-  tourController.createTour
-)
+router
+  .route('/')
+  .get(authController.protect, tourController.getTours)
+  .post(
+    // tourController.checkBody,
+    // tourController.checkPrice,
+    tourController.createTour
+  )
 
 /**
  * For some reason, this method will only work before /:id
@@ -41,8 +48,8 @@ router.route('/monthly-plan/:year').get(tourController.getMonthlyPlan)
 router
   .route('/:id')
   .get(tourController.getTourById)
-  .delete(tourController.deleteTour)
   .patch(tourController.updateTour)
+  .delete(authController.protect, authController.restrictTo('admin', 'lead-guide'), tourController.deleteTour)
 
 // For optional parameters, check :cityId
 router.get('/:id/city/:cityId?', tourController.getTourInACity)

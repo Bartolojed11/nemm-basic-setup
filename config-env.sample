@@ -1,0 +1,20 @@
+# NODE_ENV=production
+NODE_ENV=development
+PORT=4000
+
+DATABASE=mongodb://localhost:27017/natours-app
+PAGINATION_LIMIT=
+TOP_CHEAPEST_LIMIT=
+
+# This secret should have at least 32 characters for better security
+JWT_SECRET=i-will-have-my-6-digit-salary-next-year
+JWT_EXPIRATES_IN=90d
+JWT_COOKIE_EXPIRES_IN=90
+
+# EMAILS
+EMAIL_USER=
+EMAIL_PASSWORD=
+EMAIL_HOST=
+EMAIL_PORT=
+EMAIL_FROM=
+EMAIL_FROM_NAME=

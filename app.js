@@ -1,21 +1,44 @@
 const express = require('express')
-const res = require('express/lib/response')
 const morgan = require('morgan')
+const rateLimit = require('express-rate-limit')
+
+const helmet = require('helmet')
+const mongoSanitize = require('mongo-sanitize')
+const xss = rrequire('xss-clean')
+const hpp = rrequire('hpp')
+
 const AppError = require('./handlers/AppError')
 const ErrorHandler = require('./handlers/ErrorHandler')
 
 const app = express()
 
-// Middlewares
+// Global middlewares
+
+// Set security HTTP headers
+app.use(helmet())
+
 // morgan > Will log the endpoint on console or terminal and how long a response is sent back
 // NODE_ENV is accessible here because it's on server.js and it only needs to run once
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'))
 }
 
-app.use(express.json()) //middleware
+const limiter = rateLimit({
+    max: 100,
+    windowMs: 60 * 60 * 1000,
+    message: 'Too many requests for this IP, please try again in an hour'
+})
+
+app.use('/api', limiter)
+
 // it stands between middle of request and response
 // express.json() middle ware, adds body to the request containing the request data
+app.use(express.json())
+
+app.use(mongoSanitize())
+app.use(xss())
+app.use(hpp())
+
 
 app.use((req, res, next) => {
     // req and res, is needed here
@@ -44,14 +67,17 @@ app.get('/', (req, res) => {
  * tourRoutes is called tourRoutes because it's inside routes (Convention)
  */
 const tourRouter = require('./routes/tourRoutes')
+const userRouter = require('./routes/userRoutes')
+
 app.use('/api/v1/tours', tourRouter)
 
+app.use('/api/v1/users', userRouter)
 /**
  * Specify unhandle routes
  * .all() means all http methods
  * * means all http verbs
  */
-app.all('*', (req, res, next) => {    
+app.all('*', (req, res, next) => {
     next(new AppError(`Can't find route ${req.url} on the server`, 404));
 })
 

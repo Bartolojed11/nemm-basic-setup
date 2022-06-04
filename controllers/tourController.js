@@ -35,29 +35,46 @@ exports.checkPrice = (req, res, next) => {
 }
 
 exports.createTour = catchAsync(async (req, res, next) => {
-  let Response = require('../helpers/Response')
+
   // No need to manually assign key value pairs, columns not declared on schema will not be saved.
   const tour = await Tour.create(req.body)
 
-  return new Response(res, 200, 'Tour created successfully!', 'success', tour)
+  res.status(200).json({
+    success: true,
+    message: 'Tour created successfully!',
+    data: {
+      tour
+    }
+  })
 })
 
 exports.getTours = catchAsync(async (req, res, next) => {
-  let Response = require('../helpers/Response')
   let model = new Filtering(Tour, req).filter().selectedFields().sort()
   let tours = await model.query
 
-  return new Response(res, 200, {}, 'success', tours)
+  res.status(200).json({
+    success: true,
+    results: tours.length,
+    data: {
+      tours
+    }
+  })
 })
 
 exports.getTourById = catchAsync(async (req, res, next) => {
-  let Response = require('../helpers/Response')
   const { id } = req.params
   const tour = await Tour.findById(id)
-  if (! tour) {
+
+  if (!tour) {
     return next(new AppError('No tour found!', 404))
-  } 
-  return new Response(res, 200, {}, 'Success', tour)
+  }
+
+  res.status(200).json({
+    success: true,
+    data: {
+      tour
+    }
+  })
 })
 
 exports.getTourInACity = (req, res) => {
@@ -65,18 +82,20 @@ exports.getTourInACity = (req, res) => {
 }
 
 exports.deleteTour = catchAsync(async (req, res, next) => {
-  let Response = require('../helpers/Response')
   const { id } = req.params
 
   const tour = await Tour.findByIdAndDelete(id)
-  if (! tour) {
+  if (!tour) {
     return next(new AppError('No tour found!', 404))
   }
-  return new Response(res, 204, 'Tour deleted successfully!', 'success')
+
+  res.status(200).json({
+    success: true,
+    message: 'Tour deleted successfully!'
+  })
 })
 
 exports.updateTour = catchAsync(async (req, res, next) => {
-  let Response = require('../helpers/Response')
   const { id } = req.params
 
   // new : true means that it will return the updated tour
@@ -86,24 +105,30 @@ exports.updateTour = catchAsync(async (req, res, next) => {
     runValidators: true
   })
 
-  if (! tour) {
+  if (!tour) {
     return next(new AppError('No tour found!', 404))
   }
 
-  return new Response(res, 200, 'Tour updated successfully!', 'success', tour)
+  res.status(200).json({
+    success: true,
+    message: 'Tour updated successfully!',
+    data: {
+      tour
+    }
+  })
 })
 
 // exports.checkId = (req, res, next, val) => {
 //   if (isNaN(val)) {
 //    return res.status(500).json({
-//        'message' : 'Invalid ID. ID must be an integer'
+//        message : 'Invalid ID. ID must be an integer'
 //    })
 //   }
 //    next()
 // }
 
 exports.getTourStats = catchAsync(async function (req, res, next) {
-  let Response = require('../helpers/Response')
+
   /**
    * aggregate() can be found on mongo db and it supports queries which 
    * are not found on mongoose documentation.
@@ -132,11 +157,16 @@ exports.getTourStats = catchAsync(async function (req, res, next) {
     //   $match: { _id: { $ne: 'easy' } } // This will exclude the easy difficulty
     // }
   ])
-  return new Response(res, 200, {}, 'success', stats)
+
+  res.status(200).json({
+    success: true,
+    data: {
+      stats
+    }
+  })
 })
 
 exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
-  let Response = require('../helpers/Response')
 
   const year = req.params.year
   /**
@@ -187,5 +217,10 @@ exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
     }
   ])
 
-  return new Response(res, 200, {}, 'success', monthlyPlan)
+  res.status(200).json({
+    success: true,
+    data: {
+      monthlyPlan
+    }
+  })
 })
