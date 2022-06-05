@@ -3,9 +3,9 @@ const morgan = require('morgan')
 const rateLimit = require('express-rate-limit')
 
 const helmet = require('helmet')
-const mongoSanitize = require('mongo-sanitize')
-const xss = rrequire('xss-clean')
-const hpp = rrequire('hpp')
+const mongoSanitize = require('express-mongo-sanitize')
+const xss = require('xss-clean')
+const hpp = require('hpp')
 
 const AppError = require('./handlers/AppError')
 const ErrorHandler = require('./handlers/ErrorHandler')
@@ -24,7 +24,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 const limiter = rateLimit({
-    max: 100,
+    max: 1000,
     windowMs: 60 * 60 * 1000,
     message: 'Too many requests for this IP, please try again in an hour'
 })

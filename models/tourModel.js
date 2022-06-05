@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const slugify = require('slugify');
+const mongoose = require('mongoose')
+const slugify = require('slugify')
 
 const TourSchema = mongoose.Schema({
   price: {
@@ -84,17 +84,48 @@ const TourSchema = mongoose.Schema({
   secretTour: {
     type: Boolean,
     default: false
-  }
+  },
+  startLocation: {
+    // GeoJSON
+    type: {
+      type: String,
+      default: 'Point',
+      enum: ['Point']
+    },
+    coordinates: [Number],
+    address: String,
+    description: String
+  },
+  // Embed
+  locations: [
+    {
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point']
+      },
+      coordinates: [Number],
+      address: String,
+      description: String,
+      day: Number
+    }
+  ],
+  guides: [
+    {
+      type: mongoose.Schema.ObjectId,
+      ref: 'User'
+    }
+  ]
 }, {
   // Means it should show the virtuals when having a json and object result
   toJSON: { virtuals: true },
   toObject: { virtuals: true },
-});
+})
 
 // virtual is a bit like the view on MySql Database
 // Virtual can't be queried, (eg) Tour.find().where('durationWeeks', 1)
 TourSchema.virtual('durationWeeks').get(function () {
-  return this.duration / 7;
+  return this.duration / 7
 })
 
 /**
@@ -105,6 +136,16 @@ TourSchema.virtual('durationWeeks').get(function () {
 TourSchema.pre('save', function (next) {
   console.log(this)
   this.slug = slugify(this.name, { lower: true })
+  next()
+})
+
+// Loding reference relationship for every find query
+TourSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: 'guides',
+    select: '-__v -name' // means to exlude on response
+  })
+
   next()
 })
 
@@ -127,6 +168,6 @@ TourSchema.pre(/^find/, function (next) {
 
 
 
-const Tour = mongoose.model('Tour', TourSchema);
+const Tour = mongoose.model('Tour', TourSchema)
 
-module.exports = Tour;
+module.exports = Tour
