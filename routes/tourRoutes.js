@@ -47,8 +47,8 @@ router.route('/monthly-plan/:year').get(tourController.getMonthlyPlan)
 
 router
   .route('/:id')
-  .get(tourController.getTourById)
-  .patch(tourController.updateTour)
+  .get(authController.protect, authController.restrictTo('admin', 'lead-guide'), tourController.getTourById)
+  .patch(authController.protect, authController.restrictTo('admin', 'lead-guide'), tourController.updateTour)
   .delete(authController.protect, authController.restrictTo('admin', 'lead-guide'), tourController.deleteTour)
 
 // For optional parameters, check :cityId

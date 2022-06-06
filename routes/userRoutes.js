@@ -15,6 +15,13 @@ router
     .get(userController.getAllUsers)
     .post(userController.createUser)
 
+router.patch('/updateMe',
+    authController.protect,
+    userController.uploadUserPhoto,
+    userController.resizeUserPhotos,
+    userController.updateMe
+)
+
 router
     .route('/:id')
     .get(userController.getUser)

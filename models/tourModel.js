@@ -122,6 +122,10 @@ const TourSchema = mongoose.Schema({
   toObject: { virtuals: true },
 })
 
+// INDEX 
+// Compound index
+TourSchema.index({price: 1, ratings: -1})
+
 // virtual is a bit like the view on MySql Database
 // Virtual can't be queried, (eg) Tour.find().where('durationWeeks', 1)
 TourSchema.virtual('durationWeeks').get(function () {
