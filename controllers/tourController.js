@@ -3,6 +3,9 @@ const Filtering = require('./../helpers/Filtering')
 const catchAsync = require('../handlers/CatchAsync')
 const AppError = require('../handlers/AppError')
 
+const multer = require('multer')
+const sharp = require('sharp')
+
 // validator middlewares
 
 // exports.checkBody = (req, res, next) => {
@@ -15,6 +18,68 @@ const AppError = require('../handlers/AppError')
 //   }
 //   next()
 // }
+
+const multerStorage = multer.memoryStorage()
+
+const multerFilter = (req, file, cb) => {
+  // No matther what image type it is, mimetype of images always starts with image
+  if (file.mimetype.startsWith('image')) {
+    cb(null, true)
+  } else {
+    cb(new AppError('Not an image! Please upload only an image', 401), false)
+  }
+}
+
+const upload = multer({
+  storage: multerStorage,
+  fileFilter: multerFilter
+})
+
+// If multiple image is being uploaded
+exports.uploadTourImages = upload.fields([
+  {
+    name: 'imageCover', maxCount: 1
+  },
+  {
+    name: 'images', maxCount: 3
+  }
+])
+
+
+exports.resizeTourImages = catchAsync(async (req, res, next) => {
+
+  if (!req.files.imageCover || !req.files.images) return next()
+  
+
+  req.body.imageCover = `tour-${req.params.id}-${Date.now()}-cover.jpeg`
+
+  await sharp(req.files.imageCover[0].buffer)
+    .resize(2000, 1333)
+    .toFormat('jpeg')
+    .jpeg({ quality: 90 })
+    .toFile(`public/img/tours/${req.body.imageCover}`)
+
+    
+  req.body.images = []
+  await Promise.all(
+    req.files.images.map(async (file, i) => {
+      const filename = `tour-${req.params.id}-${Date.now()}-${i + 1}.jpeg`
+
+      await sharp(file.buffer)
+        .resize(2000, 1333)
+        .toFormat('jpeg')
+        .jpeg({ quality: 90 })
+        .toFile(`public/img/tours/${filename}`)
+
+      req.body.images.push(filename)
+    })
+  )
+
+  next()
+})
+
+// If only one image field is being uploaded
+// exports.array('images', 3)
 
 exports.topCheapestTours = (req, res, next) => {
   req.query.limit = process.env.TOP_CHEAPEST_LIMIT
@@ -33,6 +98,7 @@ exports.checkPrice = (req, res, next) => {
   }
   next()
 }
+
 
 exports.createTour = catchAsync(async (req, res, next) => {
 

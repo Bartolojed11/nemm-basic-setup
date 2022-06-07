@@ -48,8 +48,15 @@ router.route('/monthly-plan/:year').get(tourController.getMonthlyPlan)
 router
   .route('/:id')
   .get(authController.protect, authController.restrictTo('admin', 'lead-guide'), tourController.getTourById)
-  .patch(authController.protect, authController.restrictTo('admin', 'lead-guide'), tourController.updateTour)
+  .patch(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide'),
+    tourController.uploadTourImages,
+    tourController.resizeTourImages,
+    tourController.updateTour
+  )
   .delete(authController.protect, authController.restrictTo('admin', 'lead-guide'), tourController.deleteTour)
+
 
 // For optional parameters, check :cityId
 router.get('/:id/city/:cityId?', tourController.getTourInACity)
